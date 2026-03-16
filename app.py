@@ -3,129 +3,159 @@ import google.generativeai as genai
 import json
 import re
 
-# --- CẤU HÌNH GIAO DIỆN CHUẨN (Fix lỗi mất tiêu đề) ---
-st.set_page_config(page_title="Trợ Lý SEO Youtube Văn Thế", layout="centered")
+# --- CẤU HÌNH GIAO DIỆN CHUẨN 5 ẢNH (ẢNH 843-847) ---
+st.set_page_config(page_title="Trợ Lý Videos SEO Youtube ", layout="centered")
 
 st.markdown("""
     <style>
     .stApp { background-color: #2b313e; color: #ffffff; }
     
-    /* Hiển thị tiêu đề các ô nhập liệu trắng rõ */
+    /* Hiện tiêu đề trắng rõ (Fix lỗi ảnh 860) */
     label, .stMarkdown p { 
         color: #ffffff !important; 
         font-weight: 600 !important;
         display: block !important;
-        margin-bottom: 5px !important;
     }
 
     .card { 
         background-color: #363d4a; padding: 25px; 
-        border-radius: 12px; border: 1px solid #4a5568; margin-bottom: 20px;
+        border-radius: 15px; border: 1px solid #4a5568; margin-bottom: 20px;
     }
 
-    .title-gold { color: #f1c40f; font-size: 30px; font-weight: 800; text-align: center; }
+    .title-gold { color: #f1c40f; font-size: 30px; font-weight: 800; text-align: center; margin-bottom: 5px; }
+    .subtitle { color: #bdc3c7; text-align: center; margin-bottom: 25px; font-size: 14px; }
 
-    /* Nút Tạo Nội Dung (Xanh dương) */
+    /* Nút Tạo Nội Dung (Ảnh 843) */
     .stButton>button { 
         background: #2563eb !important; color: white !important; 
-        border-radius: 8px; height: 3.5em; font-weight: bold; border: none;
+        border-radius: 8px; height: 3.5em; font-weight: bold; width: 100%; border: none;
     }
 
-    /* Thẻ tag (Ảnh 846) */
+    /* Các nút chức năng (Ảnh 844) */
+    .btn-blue button { background-color: #1e40af !important; color: white !important; }
+    .btn-green button { background-color: #166534 !important; color: white !important; }
+    .btn-purple button { background-color: #6b21a8 !important; color: white !important; }
+
+    /* Tag bong bóng (Ảnh 846) */
     .tag-chip { 
         background: #4a5568; color: #e2e8f0; padding: 6px 14px; 
-        border-radius: 20px; display: inline-block; margin: 4px; border: 1px solid #718096;
+        border-radius: 20px; display: inline-block; margin: 4px; border: 1px solid #718096; font-size: 13px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- HÀM AI: FIX 404 & FIX KHÔNG RA TIN ---
-def process_seo(api_key, keyword):
+# --- LOGIC AI THÔNG MINH (FIX 404 & FIX KHÔNG RA TIN) ---
+def get_seo_content(api_key, keyword):
     try:
         genai.configure(api_key=api_key)
-        # Sử dụng model định danh đầy đủ để tránh 404
-        model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
         
+        # Thử lần lượt các model để tránh lỗi 404 (Ảnh 859)
+        models_to_try = ['gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-pro']
+        model = None
+        
+        for m_name in models_to_try:
+            try:
+                model = genai.GenerativeModel(m_name)
+                # Test thử 1 câu ngắn xem có 404 không
+                model.generate_content("test")
+                break 
+            except:
+                continue
+        
+        if not model:
+            return "ERROR_404"
+
         prompt = f"""
-        Nhiệm vụ: SEO Youtube cho từ khóa '{keyword}'.
-        Hãy trả về 1 chuỗi JSON duy nhất, không có văn bản thừa:
+        Bạn là chuyên gia SEO Youtube. Hãy phân tích từ khóa '{keyword}'.
+        Trả về DUY NHẤT mã JSON theo cấu trúc này (không viết gì thêm):
         {{
-            "trend": "mô tả xu hướng hiện tại",
-            "titles": ["tiêu đề 1", "tiêu đề 2", ..., "tiêu đề 10"],
-            "tags": ["tag 1", "tag 2", ..., "tag 25"],
-            "desc": "mô tả video chuẩn SEO",
-            "comment": "bình luận ghim hay"
+            "titles": ["10 tiêu đề hấp dẫn nhất"],
+            "tags": ["25 thẻ tag hot nhất"],
+            "desc": "Mô tả chuẩn SEO dài, có hashtag",
+            "comment": "Bình luận ghim kêu gọi hành động",
+            "category": "Giáo dục / Công nghệ"
         }}
         """
         response = model.generate_content(prompt)
         
-        # Dùng Regex để lấy đúng phần JSON (Fix lỗi không ra tin)
+        # Bóc tách JSON an toàn (Fix lỗi không ra tin)
         json_str = re.search(r'\{.*\}', response.text, re.DOTALL).group()
         return json.loads(json_str)
     except Exception as e:
-        st.error(f"Lỗi: {str(e)}")
-        return None
+        return str(e)
 
+# Quản lý Session
 if 'step' not in st.session_state: st.session_state.step = 1
 
 with st.sidebar:
-    st.header("🔑 Cấu hình")
+    st.header("⚙️ Cấu hình API")
     api_key = st.text_input("Gemini API Key:", type="password")
-    if st.button("🔄 Làm mới ứng dụng"):
+    if st.button("🔄 Làm mới Tool"):
         st.session_state.clear()
         st.rerun()
 
-# --- BƯỚC 1: FORM NHẬP LIỆU (Ảnh 843) ---
+# --- BƯỚC 1: FORM NHẬP LIỆU (ẢNH 843) ---
 if st.session_state.step == 1:
     st.markdown('<p class="title-gold">Chuyên Gia SEO Video</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">Đưa video của bạn lên top tìm kiếm YouTube!</p>', unsafe_allow_html=True)
+    
     with st.container():
         st.markdown('<div class="card">', unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
             st.selectbox("Chọn ngôn ngữ", ["Tiếng Việt", "English"], key="lang")
-            st.text_input("Link video đối thủ (Tùy chọn)", placeholder="Dán link tại đây...", key="ref")
+            st.text_input("Link video đối thủ (Tùy chọn)", key="ref", placeholder="Dán link...")
         with c2:
-            kw = st.text_input("Từ khóa chính (Bắt buộc)", placeholder="Ví dụ: cách nấu phở", key="kw_input")
-            st.text_input("Link kênh của bạn", placeholder="Dán link kênh...", key="chan")
+            kw = st.text_input("Từ khóa chính (Bắt buộc)", key="kw", placeholder="Ví dụ: Cách làm giàu")
+            st.text_input("Link kênh YouTube của bạn (Tùy chọn)", key="chan")
         
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🚀 TẠO NỘI DUNG TỐI ƯU"):
             if kw and api_key:
                 with st.spinner("Đang tra cứu dữ liệu..."):
-                    result = process_seo(api_key, kw)
-                    if result:
-                        st.session_state.data = result
-                        st.session_state.kw = kw
+                    res = get_seo_content(api_key, kw)
+                    if res == "ERROR_404":
+                        st.error("Lỗi 404: Không tìm thấy Model. Hãy thử lại sau vài phút hoặc đổi API Key.")
+                    elif isinstance(res, dict):
+                        st.session_state.data = res
+                        st.session_state.current_kw = kw
                         st.session_state.step = 2
                         st.rerun()
-            else: st.warning("Vui lòng nhập đầy đủ Từ khóa và API Key!")
+                    else:
+                        st.error(f"Lỗi: {res}")
+            else: st.warning("Vui lòng nhập Từ khóa và API Key!")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# --- BƯỚC 2: KẾT QUẢ (Ảnh 844, 845, 846) ---
+# --- BƯỚC 2: KẾT QUẢ (ẢNH 844, 845, 846, 847) ---
 if st.session_state.step >= 2:
-    st.markdown(f"### 📈 KẾT QUẢ SEO: {st.session_state.kw.upper()}")
+    st.markdown(f"### KẾT QUẢ CHO: <span style='color:#f1c40f'>{st.session_state.current_kw.upper()}</span>", unsafe_allow_html=True)
     
-    # 3 Nút chức năng (Ảnh 844)
+    # Các nút công cụ (Ảnh 844)
     st.write("🚀 CÔNG CỤ PHÂN TÍCH:")
     bc1, bc2, bc3 = st.columns(3)
-    bc1.button("🔵 Danh mục", type="primary")
-    bc2.button("🟢 Thẻ Tag", type="secondary")
-    bc3.button("🟣 Thông tin", type="secondary")
+    with bc1: st.markdown('<div class="btn-blue">', unsafe_allow_html=True); st.button(f"📁 {st.session_state.data.get('category')}"); st.markdown('</div>', unsafe_allow_html=True)
+    with bc2: st.markdown('<div class="btn-green">', unsafe_allow_html=True); st.button("✅ Đã tạo 25 Tags"); st.markdown('</div>', unsafe_allow_html=True)
+    with bc3: st.markdown('<div class="btn-purple">', unsafe_allow_html=True); st.button("ℹ️ Thông tin Video"); st.markdown('</div>', unsafe_allow_html=True)
 
     # 10 Tiêu đề (Ảnh 845)
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.write("🏅 **10 TIÊU ĐỀ YOUTUBE HẤP DẪN**")
     for t in st.session_state.data.get('titles', []):
-        st.info(t)
+        st.write(f"🔹 {t}")
     st.markdown('</div>', unsafe_allow_html=True)
 
     # 25 Tags (Ảnh 846)
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.write("📊 **25 TỪ KHÓA TÌM KIẾM CAO**")
-    tags_html = "".join([f'<span class="tag-chip">{tag}</span>' for tag in st.session_state.data.get('tags', [])])
+    st.write("📈 **25 TỪ KHÓA TÌM KIẾM CAO**")
+    tags_html = "".join([f'<span class="tag-chip">#{tag}</span>' for tag in st.session_state.data.get('tags', [])])
     st.markdown(tags_html, unsafe_allow_html=True)
     
+    # Thumbnail Prompt (Ảnh 847)
     st.divider()
-    if st.button("🔄 Tạo từ khóa khác"):
+    st.write("🎨 **PROMPT TẠO THUMBNAIL:**")
+    st.code(f"YouTube thumbnail for '{st.session_state.current_kw}', bold text, high contrast, 4k.")
+    
+    if st.button("🔄 Tạo nội dung mới"):
         st.session_state.step = 1
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)

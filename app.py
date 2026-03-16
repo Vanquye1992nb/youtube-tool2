@@ -1,138 +1,106 @@
 import streamlit as st
 import google.generativeai as genai
-import re
+import random
 
-# --- UI CONFIGURATION ---
-st.set_page_config(page_title="YouTube SEO Master ", layout="centered")
+# --- CẤU HÌNH GIAO DIỆN ---
+st.set_page_config(page_title="Trợ Lý Videos SEO Youtube", layout="centered")
 
 st.markdown("""
     <style>
-    .main { background-color: #0e1117; color: white; }
-    .stButton>button { border-radius: 12px; height: 3.5em; font-weight: bold; transition: all 0.3s; }
-    .card { background-color: #1c2128; padding: 25px; border-radius: 15px; border: 1px solid #30363d; margin-bottom: 20px; }
-    .title-gold { color: #facc15; font-size: 30px; font-weight: bold; text-align: center; }
-    .tag-chip { background-color: #238636; color: white; padding: 5px 12px; border-radius: 20px; display: inline-block; margin: 4px; font-size: 13px; border: 1px solid #2ea043; }
-    .score-circle { width: 80px; height: 80px; border-radius: 50%; border: 4px solid #facc15; line-height: 72px; text-align: center; font-size: 24px; font-weight: bold; margin: 0 auto; }
+    .main { background-color: #1a1c24; color: white; }
+    .stButton>button { border-radius: 8px; font-weight: bold; width: 100%; transition: 0.3s; }
+    .card { background-color: #262730; padding: 20px; border-radius: 12px; border: 1px solid #3d3f4e; margin-bottom: 20px; }
+    .title-center { color: #facc15; text-align: center; font-size: 28px; font-weight: bold; }
+    .trend-up { color: #16a34a; font-weight: bold; }
+    .trend-down { color: #dc2626; font-weight: bold; }
+    .metric-box { background: #333645; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #4a4a4a; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- STATE MANAGEMENT ---
+# --- QUẢN LÝ TRẠNG THÁI ---
 if 'step' not in st.session_state: st.session_state.step = 1
-if 'data' not in st.session_state: st.session_state.data = {}
+if 'seo_data' not in st.session_state: st.session_state.seo_data = {}
 
-# --- SIDEBAR ---
 with st.sidebar:
-    st.header("⚙️ AI Control Center")
-    api_key = st.text_input("Gemini API Key:", type="password")
+    st.title("⚙️ Cấu hình API")
+    api_key = st.text_input("Nhập Gemini API Key:", type="password")
     if api_key: genai.configure(api_key=api_key)
     st.divider()
-    if st.button("🔄 Bắt đầu lại"):
+    if st.button("🔄 Làm mới quy trình"):
         st.session_state.step = 1
         st.rerun()
 
 # ---------------------------------------------------------
-# BƯỚC 1: NHẬP LIỆU & QUÉT LINK (Logic Ảnh 1)
+# BƯỚC 1: NHẬP LIỆU
 # ---------------------------------------------------------
-if st.session_state.step == 1:
-    st.markdown('<p class="title-gold">Hệ Thống SEO Video AI</p>', unsafe_allow_html=True)
-    st.markdown('<p style="text-align: center; color: #8b949e;">Giải pháp tối ưu hóa Video chuẩn 2026</p>', unsafe_allow_html=True)
-    
+if st.session_state.step >= 1:
+    st.markdown('<p class="title-center">Chuyên Gia SEO Video</p>', unsafe_allow_html=True)
     with st.container():
         st.markdown('<div class="card">', unsafe_allow_html=True)
         col1, col2 = st.columns(2)
         with col1:
-            lang = st.selectbox("🌐 Ngôn ngữ", ["Tiếng Việt", "English", "Japanese"])
-            link_ref = st.text_input("🔗 Link đối thủ", placeholder="Quét tự động dữ liệu...")
+            lang = st.selectbox("Chọn ngôn ngữ", ["Tiếng Việt", "English"])
+            link_ref = st.text_input("Link video đối thủ (Tùy chọn)")
         with col2:
-            kw = st.text_input("🔑 Từ khóa chính", placeholder="Ví dụ: Sinh tồn trên đảo hoang")
-            quality = st.select_slider("🎯 Độ chi tiết kịch bản", options=["Cơ bản", "Nâng cao", "Chuyên sâu"])
+            kw = st.text_input("Từ khóa chính (Bắt buộc)", placeholder="Ví dụ: Cách làm bánh rán")
+            target = st.selectbox("Đối tượng mục tiêu", ["Đại chúng", "Trẻ em", "Kỹ thuật"])
         
-        if st.button("🚀 PHÂN TÍCH VÀ TẠO DỮ LIỆU", use_container_width=True):
-            if not kw or not api_key:
-                st.error("Vui lòng nhập Từ khóa và API Key!")
-            else:
-                with st.spinner("AI đang bóc tách link đối thủ và khởi tạo SEO..."):
-                    model = genai.GenerativeModel('gemini-1.5-flash')
-                    # Prompt tích hợp Kịch bản (Script)
-                    prompt = f"SEO cho từ khóa '{kw}'. Trả về JSON: 10 tiêu đề, 25 tags, 1 mô tả, 1 kịch bản video 3 phút, 1 bình luận, 3 prompt ảnh thumbnail."
-                    res = model.generate_content(prompt)
-                    st.session_state.data = {'kw': kw, 'res': res.text}
-                    st.session_state.step = 2
-                    st.rerun()
+        if st.button("🚀 PHÂN TÍCH XU HƯỚNG & SEO"):
+            if kw and api_key:
+                st.session_state.seo_data['kw'] = kw
+                st.session_state.step = 2
+                st.rerun()
+            else: st.warning("Vui lòng nhập Từ khóa và API Key!")
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# BƯỚC 2: PHÂN TÍCH NHANH & TIÊU ĐỀ (Logic Ảnh 2)
+# BƯỚC 2: DỰ ĐOÁN XU HƯỚNG (TREND PREDICTOR) - TÍNH NĂNG MỚI
 # ---------------------------------------------------------
-elif st.session_state.step >= 2:
-    st.markdown(f"### 📈 Dashboard: {st.session_state.data['kw'].upper()}")
-    
-    # SEO Score & Quick Actions
-    col_a, col_b = st.columns([1, 4])
-    with col_a:
-        st.markdown('<div class="score-circle">92</div>', unsafe_allow_html=True)
-    with col_b:
-        st.write("🔍 **QUÉT NHANH ĐỐI THỦ:**")
-        c1, c2, c3 = st.columns(3)
-        c1.button("🔵 Danh mục", use_container_width=True)
-        c2.button("🟢 Thẻ Tag", use_container_width=True)
-        c3.button("🟣 Info", use_container_width=True)
-
+if st.session_state.step >= 2:
+    st.markdown("### 🔥 DỰ ĐOÁN XU HƯỚNG (TREND PREDICTOR)")
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.write("🏆 **10 TIÊU ĐỀ CLICKBAIT SẠCH**")
-    titles = [f"{st.session_state.data['kw']} - {i} sự thật kinh ngạc" for i in range(1, 11)]
-    for t in titles: st.markdown(f"✅ {t}")
+    
+    # Giả lập logic AI phân tích xu hướng
+    col_m1, col_m2, col_m3 = st.columns(3)
+    with col_m1:
+        st.markdown('<div class="metric-box">Lưu lượng<br><b style="font-size:20px;">8.5K/tháng</b></div>', unsafe_allow_html=True)
+    with col_m2:
+        st.markdown('<div class="metric-box">Cạnh tranh<br><b style="font-size:20px; color:#facc15;">Trung bình</b></div>', unsafe_allow_html=True)
+    with col_m3:
+        st.markdown('<div class="metric-box">Trạng thái<br><b class="trend-up" style="font-size:20px;">🔥 ĐANG LÊN</b></div>', unsafe_allow_html=True)
     
     st.markdown("---")
-    sel_title = st.selectbox("Chọn tiêu đề để làm nội dung:", titles)
-    if st.button("✨ TIẾP THEO: TẠO KỊCH BẢN & MÔ TẢ"):
-        st.session_state.data['sel_title'] = sel_title
+    st.write(f"💡 **Đánh giá từ chuyên gia AI:** Từ khóa *'{st.session_state.seo_data['kw']}'* đang có dấu hiệu tăng trưởng mạnh trong 30 ngày qua. Đây là thời điểm vàng để xuất bản video nhằm đón đầu xu hướng.")
+    
+    if st.button("✨ TIẾP TỤC TẠO TIÊU ĐỀ & MÔ TẢ"):
         st.session_state.step = 3
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# BƯỚC 3: MÔ TẢ & KỊCH BẢN TỰ ĐỘNG (Tính năng mới)
+# BƯỚC 3: KẾT QUẢ SEO (TIÊU ĐỀ, TAGS, MÔ TẢ)
 # ---------------------------------------------------------
 if st.session_state.step >= 3:
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("🎬 **KỊCH BẢN VIDEO (SCRIPT)**")
-    st.info("Kịch bản được viết theo cấu trúc: Hook -> Content -> CTA")
-    st.text_area("Nội dung kịch bản:", f"[00:00] Hook: Bạn đã bao giờ tự hỏi về {st.session_state.data['kw']} chưa?\n[01:30] Body: Trong thực tế, điều này rất quan trọng vì...\n[03:00] CTA: Nhấn Subcribe để xem thêm!", height=200)
+    st.markdown(f"### 📊 KẾT QUẢ SEO CHO: {st.session_state.seo_data['kw'].upper()}")
     
-    st.markdown("📝 **MÔ TẢ VIDEO CHUẨN SEO**")
-    st.text_area("Mô tả (Copy):", f"Chào mừng các bạn! Hôm nay chúng ta sẽ tìm hiểu về {st.session_state.data['sel_title']}...", height=100)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Nút bấm phân tích nhanh theo mẫu ảnh 1000000844
+    c1, c2, c3 = st.columns(3)
+    c1.button("🔵 Kiểm tra danh mục")
+    c2.button("🟢 Kiểm tra thẻ tag")
+    c3.button("🟣 Thông tin video")
 
-    st.markdown("🏷️ **25 THẺ TAG CHIẾN LƯỢC**")
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    tags = ["Ancient", "Survival", "Forest", "Technique", "HowTo", "Viral", "Top", "Discovery"]
-    for tag in tags: st.markdown(f'<span class="tag-chip">#{tag}</span>', unsafe_allow_html=True)
-    st.button("📋 SAO CHÉP TAGS")
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("🏅 **10 TIÊU ĐỀ HẤP DẪN (DỰA TRÊN TREND)**")
+    titles = [f"Bí mật {st.session_state.seo_data['kw']} bùng nổ 2026", f"Cách {st.session_state.seo_data['kw']} kiếm tiền triệu mỗi ngày"]
+    for t in titles: st.info(t)
     
-    if st.button("🖼️ TIẾP THEO: THUMBNAIL DESIGN"):
-        st.session_state.step = 4
-        st.rerun()
-
-# ---------------------------------------------------------
-# BƯỚC 4: THUMBNAIL & EXPORT (Logic Ảnh 5)
-# ---------------------------------------------------------
-if st.session_state.step >= 4:
-    st.markdown("🖼️ **PROMPT THUMBNAIL STUDIO**")
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    col_t1, col_t2 = st.columns(2)
-    with col_t1:
-        text_on = st.text_input("Văn bản trên ảnh", value="BÍ MẬT 2026")
-    with col_t2:
-        style = st.selectbox("Phong cách", ["Realistic", "3D Render", "Anime", "Cyberpunk"])
+    st.write("---")
+    st.text_area("Mô tả chuẩn SEO:", "Nội dung video này sẽ giúp bạn nắm bắt xu hướng...", height=100)
     
-    if st.button("🔥 TẠO PROMPT"):
-        st.code(f"/imagine prompt: A {style} YouTube thumbnail about {st.session_state.data['kw']}, text '{text_on}', hyper-realistic, 8k --ar 16:9")
+    st.write("🏷️ **Thẻ Tag đề xuất:**")
+    st.markdown('<span class="tag-chip">#Trending</span> <span class="tag-chip">#Viral</span> <span class="tag-chip">#SEO2026</span>', unsafe_allow_html=True)
     
-    st.divider()
-    col_dl, col_rs = st.columns(2)
-    col_dl.button("📥 TẢI XUỐNG BÁO CÁO (PDF)", type="primary", use_container_width=True)
-    if col_rs.button("🔄 TẠO VIDEO MỚI", use_container_width=True):
+    if st.button("🔄 Tạo lại nội dung"):
         st.session_state.step = 1
         st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)

@@ -1,5 +1,8 @@
 streamlit
-openai>=1.0.0
+openai
+pandas
 requests
 pillow
 python-dotenv
+sqlalchemy
+youtube-search-python

@@ -1,169 +1,81 @@
 import streamlit as st
-import openai
 
-# ===============================
-# CONFIG
-# ===============================
+from seo_tools import generate_seo
+from seo_tools import generate_script
+from seo_tools import generate_thumbnail_prompt
+
+from content_plan import create_content_plan
+
 
 st.set_page_config(
-    page_title="Trợ Lý YouTube Toàn Năng",
-    layout="centered"
+    page_title="YouTube Automation Tool",
+    layout="wide"
 )
 
-# nhập API key
-openai.api_key = st.secrets.get("OPENAI_API_KEY","")
+st.title("🚀 YouTube Automation Tool")
 
-# ===============================
-# HEADER
-# ===============================
+menu=st.sidebar.selectbox(
+    "Chọn chức năng",
+    [
+        "SEO Video",
+        "Video Script",
+        "Thumbnail Prompt",
+        "Content Plan"
+    ]
+)
 
-st.markdown("""
-# Trợ Lý **YouTube** Toàn Năng
-
-Công cụ AI tự động hóa phát triển kênh YouTube
-""")
-
-st.divider()
-
-# ===============================
-# HOME MENU
-# ===============================
-
-col1,col2 = st.columns(2)
-col3,col4 = st.columns(2)
-
-with col1:
-    plan_btn = st.button("📋 Kế hoạch không biên giới")
-
-with col2:
-    seo_btn = st.button("📈 Chuyên Gia SEO Video")
-
-with col3:
-    branding_btn = st.button("🎨 Cấu hình Logo & Banner")
-
-with col4:
-    checklist_btn = st.button("✅ Checklist Xây Dựng Kênh")
-
-st.divider()
-
-# ===============================
-# AI FUNCTION
-# ===============================
-
-def ask_ai(prompt):
-
-    try:
-
-        response=openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role":"user","content":prompt}]
-        )
-
-        return response.choices[0].message.content
-
-    except:
-        return "AI chưa cấu hình API."
-
-# ===============================
-# MODULE 1
-# KẾ HOẠCH KÊNH
-# ===============================
-
-if plan_btn:
-
-    st.header("📋 Kế hoạch phát triển kênh")
-
-    niche = st.text_input("Chủ đề kênh")
-
-    if st.button("Tạo kế hoạch nội dung"):
-
-        prompt=f"""
-        Lập kế hoạch phát triển kênh YouTube
-        chủ đề {niche}
-
-        gồm:
-        - kế hoạch 30 ngày
-        - ý tưởng video
-        - chiến lược tăng view
-        """
-
-        result=ask_ai(prompt)
-
-        st.write(result)
-
-# ===============================
-# MODULE 2
 # SEO VIDEO
-# ===============================
 
-if seo_btn:
+if menu=="SEO Video":
 
-    st.header("📈 Chuyên gia SEO Video")
+    st.header("YouTube SEO Generator")
 
-    keyword = st.text_input("Từ khóa video")
+    keyword=st.text_input("Keyword")
 
-    if st.button("Tạo SEO Video"):
+    if st.button("Generate SEO"):
 
-        prompt=f"""
-        Tối ưu SEO video youtube với từ khóa {keyword}
-
-        tạo:
-        - 10 tiêu đề
-        - mô tả SEO
-        - 20 hashtag
-        - 20 keywords
-        """
-
-        result=ask_ai(prompt)
+        result=generate_seo(keyword)
 
         st.write(result)
 
-# ===============================
-# MODULE 3
-# BRANDING
-# ===============================
+# SCRIPT
 
-if branding_btn:
+if menu=="Video Script":
 
-    st.header("🎨 Tạo Logo & Banner")
+    st.header("Video Script Generator")
 
-    channel_name=st.text_input("Tên kênh")
+    topic=st.text_input("Video Topic")
 
-    niche=st.text_input("Chủ đề kênh")
+    if st.button("Generate Script"):
 
-    if st.button("Tạo ý tưởng branding"):
-
-        prompt=f"""
-        Gợi ý logo và banner cho kênh youtube
-
-        tên kênh {channel_name}
-        chủ đề {niche}
-
-        gồm:
-        - phong cách logo
-        - màu sắc
-        - banner concept
-        """
-
-        result=ask_ai(prompt)
+        result=generate_script(topic)
 
         st.write(result)
 
-# ===============================
-# MODULE 4
-# CHECKLIST
-# ===============================
+# THUMBNAIL
 
-if checklist_btn:
+if menu=="Thumbnail Prompt":
 
-    st.header("✅ Checklist xây dựng kênh")
+    st.header("Thumbnail Prompt")
 
-    if st.button("Tạo checklist"):
+    topic=st.text_input("Topic")
 
-        prompt="""
-        tạo checklist xây dựng kênh youtube từ 0 đến 100k subs
-        """
+    if st.button("Generate Prompt"):
 
-        result=ask_ai(prompt)
+        result=generate_thumbnail_prompt(topic)
+
+        st.write(result)
+
+# CONTENT PLAN
+
+if menu=="Content Plan":
+
+    st.header("30 Day Content Plan")
+
+    niche=st.text_input("Channel Topic")
+
+    if st.button("Create Plan"):
+
+        result=create_content_plan(niche)
 
         st.write(result)

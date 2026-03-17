@@ -1,42 +1,48 @@
 import streamlit as st
 
 from seo_tools import generate_seo
-from seo_tools import generate_script
-from seo_tools import generate_thumbnail_prompt
-
-from content_plan import create_content_plan
-
+from script_tools import generate_script
+from content_plan import generate_plan
+from thumbnail_tools import generate_thumbnail
 
 st.set_page_config(
-    page_title="YouTube Automation Tool",
+    page_title="YouTube Automation Tool PRO",
     layout="wide"
 )
 
-st.title("🚀 YouTube Automation Tool")
+st.title("🚀 YouTube Automation Tool PRO")
 
-menu=st.sidebar.selectbox(
-    "Chọn chức năng",
+menu = st.sidebar.selectbox(
+    "Chọn công cụ",
     [
         "SEO Video",
         "Video Script",
         "Thumbnail Prompt",
-        "Content Plan"
+        "Content Plan 30 Days"
     ]
 )
 
-# SEO VIDEO
+# SEO TOOL
 
 if menu=="SEO Video":
 
-    st.header("YouTube SEO Generator")
+    st.header("SEO Video Generator")
 
-    keyword=st.text_input("Keyword")
+    keyword=st.text_input("Keyword video")
 
     if st.button("Generate SEO"):
 
-        result=generate_seo(keyword)
+        if keyword:
 
-        st.write(result)
+            with st.spinner("AI đang tạo SEO..."):
+
+                result=generate_seo(keyword)
+
+            st.write(result)
+
+        else:
+
+            st.warning("Nhập keyword")
 
 # SCRIPT
 
@@ -48,9 +54,17 @@ if menu=="Video Script":
 
     if st.button("Generate Script"):
 
-        result=generate_script(topic)
+        if topic:
 
-        st.write(result)
+            with st.spinner("AI đang viết script..."):
+
+                result=generate_script(topic)
+
+            st.write(result)
+
+        else:
+
+            st.warning("Nhập topic")
 
 # THUMBNAIL
 
@@ -58,24 +72,24 @@ if menu=="Thumbnail Prompt":
 
     st.header("Thumbnail Prompt")
 
-    topic=st.text_input("Topic")
+    topic=st.text_input("Thumbnail topic")
 
     if st.button("Generate Prompt"):
 
-        result=generate_thumbnail_prompt(topic)
+        result=generate_thumbnail(topic)
 
         st.write(result)
 
 # CONTENT PLAN
 
-if menu=="Content Plan":
+if menu=="Content Plan 30 Days":
 
-    st.header("30 Day Content Plan")
+    st.header("30 Day YouTube Plan")
 
-    niche=st.text_input("Channel Topic")
+    niche=st.text_input("Channel niche")
 
-    if st.button("Create Plan"):
+    if st.button("Generate Plan"):
 
-        result=create_content_plan(niche)
+        result=generate_plan(niche)
 
         st.write(result)

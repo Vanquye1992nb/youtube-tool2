@@ -1,5 +1,2 @@
 streamlit
-openai
-requests
-pillow
-python-dotenv
+openai>=1.0.0

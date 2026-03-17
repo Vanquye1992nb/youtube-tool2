@@ -1,3 +1,4 @@
+from ai_engine_pro import ask_ai
 def seo_score(title, desc):
 
     score = 0

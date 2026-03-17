@@ -1,26 +1,24 @@
-from openai import OpenAI
-import streamlit as st
+import google.generativeai as genai
+import time
+
+# API KEY GOOGLE (bạn đang dùng)
+API_KEY = "AIzaSyAoCyxGW6zpwEmQHj4yAHn_6tLzqLbfsqE"
+
+genai.configure(api_key=API_KEY)
+
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 def ask_ai(prompt):
 
-    if "OPENAI_API_KEY" not in st.secrets:
-        return "⚠️ OPENAI_API_KEY chưa cấu hình"
-
-    api_key = st.secrets["OPENAI_API_KEY"]
-
-    client = OpenAI(api_key=api_key)
-
     try:
+        time.sleep(1)  # chống spam
 
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role":"user","content":prompt}
-            ]
-        )
+        response = model.generate_content(prompt)
 
-        return response.choices[0].message.content
+        if hasattr(response, "text") and response.text:
+            return response.text
+
+        return "⚠️ Không có phản hồi từ AI"
 
     except Exception as e:
-
-        return f"AI Error: {e}"
+        return f"❌ AI Error: {e}"

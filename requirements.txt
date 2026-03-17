@@ -1,8 +1,2 @@
 streamlit
-openai
-pandas
-requests
-pillow
-python-dotenv
-sqlalchemy
-youtube-search-python
+google-generativeai

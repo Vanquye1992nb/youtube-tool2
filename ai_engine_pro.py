@@ -2,7 +2,7 @@ import google.generativeai as genai
 import time
 
 # ⚠️ ĐỔI KEY MỚI nếu cần
-API_KEY = "AIzaSyA65zPoRhCDUDblBof1LCejpc-HZbZNcFQ"
+API_KEY = "AIzaSyAiF8UqjOh7XlP3WqI1QfdmhJMtGHF7ZQM"
 
 genai.configure(api_key=API_KEY)
 

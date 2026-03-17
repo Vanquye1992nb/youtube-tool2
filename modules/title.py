@@ -1,4 +1,4 @@
-from ai_engine import ask_ai
+from ai_engine_pro import ask_ai
 
 def generate_titles(keyword):
     prompt = f"Tạo 30 tiêu đề YouTube viral cho: {keyword}"

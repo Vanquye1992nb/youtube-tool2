@@ -3,18 +3,24 @@ import streamlit as st
 
 def ask_ai(prompt):
 
-    api_key = st.secrets.get("OPENAI_API_KEY","")
+    if "OPENAI_API_KEY" not in st.secrets:
+        return "⚠️ OPENAI_API_KEY chưa cấu hình"
 
-    if api_key == "":
-        return "API key missing"
+    api_key = st.secrets["OPENAI_API_KEY"]
 
     client = OpenAI(api_key=api_key)
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role":"user","content":prompt}
-        ]
-    )
+    try:
 
-    return response.choices[0].message.content
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role":"user","content":prompt}
+            ]
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+
+        return f"AI Error: {e}"

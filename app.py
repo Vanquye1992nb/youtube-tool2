@@ -1,5 +1,6 @@
 import streamlit as st
 
+# import module
 from modules.seo import generate_seo
 from modules.title import generate_titles
 from modules.script import generate_script
@@ -10,12 +11,21 @@ from modules.thumbnail import thumbnail_prompt
 from modules.competitor import analyze_competitor
 from modules.seo_score import seo_score
 
-st.set_page_config(layout="wide")
+from ai_engine_pro import ask_ai
 
-st.title("🚀 YouTube Automation SaaS PRO+")
+# ================= CONFIG =================
+st.set_page_config(page_title="YouTube PRO Tool", layout="wide")
 
+st.title("🔥 YouTube Automation PRO (Anti Crash)")
+
+# ================= CACHE =================
+@st.cache_data(ttl=600)
+def cached_ai(prompt):
+    return ask_ai(prompt)
+
+# ================= SIDEBAR =================
 menu = st.sidebar.selectbox(
-    "Chức năng",
+    "Chọn chức năng",
     [
         "SEO Video",
         "Title Generator",
@@ -25,61 +35,84 @@ menu = st.sidebar.selectbox(
         "Content Plan",
         "Thumbnail Prompt",
         "Competitor Analysis",
-        "SEO Score"
+        "SEO Score",
+        "Test AI"
     ]
 )
 
+# ================= UI FUNCTION =================
+def run_with_cache(prompt):
+    with st.spinner("⏳ Đang xử lý..."):
+        result = cached_ai(prompt)
+
+    if "⚠️" in result:
+        st.warning("AI đang fallback")
+        st.text(result)
+    elif "❌" in result:
+        st.error(result)
+    else:
+        st.success("AI OK")
+        st.write(result)
+
+# ================= FEATURES =================
+
 # SEO
 if menu == "SEO Video":
-    keyword = st.text_input("Keyword")
-    if st.button("Generate"):
-        st.write(generate_seo(keyword))
+    keyword = st.text_input("Nhập keyword")
+    if st.button("Generate SEO"):
+        run_with_cache(f"SEO YouTube cho: {keyword}")
 
 # TITLE
 elif menu == "Title Generator":
-    keyword = st.text_input("Topic")
-    if st.button("Generate"):
-        st.write(generate_titles(keyword))
+    keyword = st.text_input("Nhập chủ đề")
+    if st.button("Generate Title"):
+        run_with_cache(f"Tạo 30 tiêu đề viral: {keyword}")
 
 # SCRIPT
 elif menu == "Script Video":
-    topic = st.text_input("Topic")
-    if st.button("Generate"):
-        st.write(generate_script(topic))
+    topic = st.text_input("Nhập topic")
+    if st.button("Generate Script"):
+        run_with_cache(f"Viết script video 5-10 phút: {topic}")
 
 # STORY
 elif menu == "Story Script PRO":
-    topic = st.text_input("Topic")
-    if st.button("Generate"):
-        st.write(generate_story_script(topic))
+    topic = st.text_input("Nhập topic")
+    if st.button("Generate Story"):
+        run_with_cache(f"Viết storytelling giữ chân người xem: {topic}")
 
 # KEYWORD
 elif menu == "Keyword Research":
-    topic = st.text_input("Topic")
+    topic = st.text_input("Nhập topic")
     if st.button("Research"):
-        st.write(keyword_research(topic))
+        run_with_cache(f"Tìm 30 keyword YouTube: {topic}")
 
 # PLAN
 elif menu == "Content Plan":
-    niche = st.text_input("Niche")
-    if st.button("Create"):
-        st.write(content_plan(niche))
+    niche = st.text_input("Nhập niche")
+    if st.button("Create Plan"):
+        run_with_cache(f"Lập kế hoạch 30 ngày: {niche}")
 
 # THUMBNAIL
 elif menu == "Thumbnail Prompt":
-    topic = st.text_input("Topic")
-    if st.button("Generate"):
-        st.write(thumbnail_prompt(topic))
+    topic = st.text_input("Nhập topic")
+    if st.button("Generate Thumbnail"):
+        run_with_cache(f"Prompt thumbnail viral: {topic}")
 
 # COMPETITOR
 elif menu == "Competitor Analysis":
-    topic = st.text_input("Topic")
+    topic = st.text_input("Nhập topic")
     if st.button("Analyze"):
-        st.write(analyze_competitor(topic))
+        run_with_cache(f"Phân tích đối thủ YouTube: {topic}")
 
 # SEO SCORE
 elif menu == "SEO Score":
     title = st.text_input("Title")
     desc = st.text_area("Description")
-    if st.button("Check"):
+    if st.button("Check SEO"):
         st.success(seo_score(title, desc))
+
+# TEST AI
+elif menu == "Test AI":
+    prompt = st.text_input("Test prompt")
+    if st.button("Run Test"):
+        run_with_cache(prompt)

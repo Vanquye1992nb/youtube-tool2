@@ -1,83 +1,169 @@
 import streamlit as st
-import google.generativeai as genai
-import json
-import re
+import openai
 
-# --- CẤU HÌNH GIAO DIỆN (CHUẨN 5 ẢNH) ---
-st.set_page_config(page_title="Trợ Lý SEO Youtube Văn Thế", layout="centered")
+# ===============================
+# CONFIG
+# ===============================
+
+st.set_page_config(
+    page_title="Trợ Lý YouTube Toàn Năng",
+    layout="centered"
+)
+
+# nhập API key
+openai.api_key = st.secrets.get("OPENAI_API_KEY","")
+
+# ===============================
+# HEADER
+# ===============================
 
 st.markdown("""
-    <style>
-    .stApp { background-color: #2b313e; color: #ffffff; }
-    label, .stMarkdown p { color: #ffffff !important; font-weight: bold !important; display: block !important; }
-    .card { background-color: #363d4a; padding: 25px; border-radius: 12px; border: 1px solid #4a5568; margin-bottom: 20px; }
-    .title-gold { color: #f1c40f; font-size: 28px; font-weight: 800; text-align: center; }
-    .stButton>button { background-color: #2563eb !important; color: white !important; width: 100%; border-radius: 8px; font-weight: bold; }
-    .tag-chip { background-color: #4a5568; color: #e2e8f0; padding: 5px 12px; border-radius: 15px; display: inline-block; margin: 4px; border: 1px solid #718096; }
-    </style>
-    """, unsafe_allow_html=True)
+# Trợ Lý **YouTube** Toàn Năng
 
-def call_ai_fix_404(api_key, keyword):
+Công cụ AI tự động hóa phát triển kênh YouTube
+""")
+
+st.divider()
+
+# ===============================
+# HOME MENU
+# ===============================
+
+col1,col2 = st.columns(2)
+col3,col4 = st.columns(2)
+
+with col1:
+    plan_btn = st.button("📋 Kế hoạch không biên giới")
+
+with col2:
+    seo_btn = st.button("📈 Chuyên Gia SEO Video")
+
+with col3:
+    branding_btn = st.button("🎨 Cấu hình Logo & Banner")
+
+with col4:
+    checklist_btn = st.button("✅ Checklist Xây Dựng Kênh")
+
+st.divider()
+
+# ===============================
+# AI FUNCTION
+# ===============================
+
+def ask_ai(prompt):
+
     try:
-        genai.configure(api_key=api_key)
-        # Sử dụng định danh đầy đủ để tránh lỗi 404
-        model = genai.GenerativeModel(model_name='gemini-1.5-flash-latest')
-        
-        prompt = f"Phân tích SEO Youtube cho '{keyword}'. Trả về JSON: 'titles' (10), 'tags' (25), 'desc'."
-        response = model.generate_content(prompt)
-        
-        # Bóc tách JSON
-        match = re.search(r'\{.*\}', response.text, re.DOTALL)
-        return json.loads(match.group()) if match else None
-    except Exception as e:
-        return str(e)
 
-if 'step' not in st.session_state: st.session_state.step = 1
+        response=openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role":"user","content":prompt}]
+        )
 
-with st.sidebar:
-    st.header("⚙️ Cấu hình")
-    api_key = st.text_input("Nhập API Key:", type="password")
+        return response.choices[0].message.content
 
-if st.session_state.step == 1:
-    st.markdown('<p class="title-gold">Chuyên Gia SEO Video</p>', unsafe_allow_html=True)
-    with st.container():
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        c1, c2 = st.columns(2)
-        with c1:
-            st.selectbox("Ngôn ngữ", ["Tiếng Việt"], key="lang")
-            st.text_input("Link video đối thủ", key="ref")
-        with c2:
-            kw = st.text_input("Từ khóa chính", key="kw")
-            st.text_input("Link kênh của bạn", key="chan")
-        
-        if st.button("🚀 TẠO NỘI DUNG TỐI ƯU"):
-            if kw and api_key:
-                with st.spinner("Đang xử lý..."):
-                    res = call_ai_fix_404(api_key, kw)
-                    if isinstance(res, dict):
-                        st.session_state.data = res
-                        st.session_state.current_kw = kw
-                        st.session_state.step = 2
-                        st.rerun()
-                    else: st.error(f"Lỗi: {res}")
-            else: st.warning("Vui lòng điền đủ Từ khóa và API Key!")
-        st.markdown('</div>', unsafe_allow_html=True)
+    except:
+        return "AI chưa cấu hình API."
 
-if st.session_state.step >= 2:
-    st.markdown(f"### KẾT QUẢ: {st.session_state.current_kw.upper()}")
-    
-    # Hiển thị kết quả đúng như ảnh mẫu 861
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.write("🏅 **10 TIÊU ĐỀ HẤP DẪN**")
-    for t in st.session_state.data.get('titles', []):
-        st.write(f"✅ {t}")
-    st.markdown('</div>', unsafe_allow_html=True)
+# ===============================
+# MODULE 1
+# KẾ HOẠCH KÊNH
+# ===============================
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.write("📊 **25 THẺ TAGS SEO**")
-    tags = "".join([f'<span class="tag-chip">{t}</span>' for t in st.session_state.data.get('tags', [])])
-    st.markdown(tags, unsafe_allow_html=True)
-    
-    if st.button("🔄 Tạo từ khóa khác"):
-        st.session_state.step = 1
-        st.rerun()
+if plan_btn:
+
+    st.header("📋 Kế hoạch phát triển kênh")
+
+    niche = st.text_input("Chủ đề kênh")
+
+    if st.button("Tạo kế hoạch nội dung"):
+
+        prompt=f"""
+        Lập kế hoạch phát triển kênh YouTube
+        chủ đề {niche}
+
+        gồm:
+        - kế hoạch 30 ngày
+        - ý tưởng video
+        - chiến lược tăng view
+        """
+
+        result=ask_ai(prompt)
+
+        st.write(result)
+
+# ===============================
+# MODULE 2
+# SEO VIDEO
+# ===============================
+
+if seo_btn:
+
+    st.header("📈 Chuyên gia SEO Video")
+
+    keyword = st.text_input("Từ khóa video")
+
+    if st.button("Tạo SEO Video"):
+
+        prompt=f"""
+        Tối ưu SEO video youtube với từ khóa {keyword}
+
+        tạo:
+        - 10 tiêu đề
+        - mô tả SEO
+        - 20 hashtag
+        - 20 keywords
+        """
+
+        result=ask_ai(prompt)
+
+        st.write(result)
+
+# ===============================
+# MODULE 3
+# BRANDING
+# ===============================
+
+if branding_btn:
+
+    st.header("🎨 Tạo Logo & Banner")
+
+    channel_name=st.text_input("Tên kênh")
+
+    niche=st.text_input("Chủ đề kênh")
+
+    if st.button("Tạo ý tưởng branding"):
+
+        prompt=f"""
+        Gợi ý logo và banner cho kênh youtube
+
+        tên kênh {channel_name}
+        chủ đề {niche}
+
+        gồm:
+        - phong cách logo
+        - màu sắc
+        - banner concept
+        """
+
+        result=ask_ai(prompt)
+
+        st.write(result)
+
+# ===============================
+# MODULE 4
+# CHECKLIST
+# ===============================
+
+if checklist_btn:
+
+    st.header("✅ Checklist xây dựng kênh")
+
+    if st.button("Tạo checklist"):
+
+        prompt="""
+        tạo checklist xây dựng kênh youtube từ 0 đến 100k subs
+        """
+
+        result=ask_ai(prompt)
+
+        st.write(result)

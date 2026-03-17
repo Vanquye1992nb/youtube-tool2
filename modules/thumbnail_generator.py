@@ -1,12 +1,9 @@
 from ai_engine import ask_ai
 
-def generate_thumbnail_prompt(topic):
-
-    prompt=f"""
-    tạo prompt thumbnail youtube
-    chủ đề {topic}
-    cinematic lighting
-    viral style
+def thumbnail_prompt(topic):
+    prompt = f"""
+    Viết prompt tạo thumbnail YouTube cực viral:
+    {topic}
+    style cinematic, high contrast
     """
-
     return ask_ai(prompt)

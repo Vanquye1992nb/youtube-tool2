@@ -1,15 +1,12 @@
 from ai_engine import ask_ai
 
-def generate_full_seo(keyword):
+def generate_seo(keyword):
+    prompt = f"""
+    SEO YouTube cho: {keyword}
 
-    prompt=f"""
-    tối ưu SEO youtube cho keyword {keyword}
-
-    tạo
-    - 10 title
-    - description
+    - 10 tiêu đề
+    - mô tả chuẩn SEO
     - 20 hashtag
-    - 20 keywords
+    - 20 keyword
     """
-
     return ask_ai(prompt)

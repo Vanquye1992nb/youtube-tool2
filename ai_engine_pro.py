@@ -1,35 +1,63 @@
-import google.generativeai as genai
 import time
 
-# ⚠️ ĐỔI KEY MỚI nếu cần
-API_KEY = "AIzaSyAiF8UqjOh7XlP3WqI1QfdmhJMtGHF7ZQM"
+# ====== CONFIG ======
+GEMINI_API_KEY = "DÁN_KEY_MỚI_VÀO_ĐÂY"
 
-genai.configure(api_key=API_KEY)
+# ====== GEMINI ======
+def ask_gemini(prompt):
+    try:
+        import google.generativeai as genai
 
-# MODEL ƯU TIÊN
-MODELS = [
-    "gemini-1.5-flash",
-    "gemini-1.5-pro-latest",
-    "gemini-1.0-pro"
-]
+        genai.configure(api_key=GEMINI_API_KEY)
 
-def ask_ai(prompt, debug=False):
+        models = [
+            "gemini-1.5-flash",
+            "gemini-1.5-pro-latest",
+            "gemini-1.0-pro"
+        ]
 
-    for model_name in MODELS:
-        try:
-            model = genai.GenerativeModel(model_name)
+        for m in models:
+            try:
+                model = genai.GenerativeModel(m)
+                res = model.generate_content(prompt)
+                text = getattr(res, "text", "")
 
-            response = model.generate_content(prompt)
+                if text:
+                    return text
+            except:
+                continue
 
-            # trả text chắc chắn
-            text = getattr(response, "text", None)
+    except Exception as e:
+        return f"GEMINI_ERROR: {e}"
 
-            if text and len(text.strip()) > 10:
-                return text
+    return None
 
-        except Exception as e:
-            if debug:
-                return f"❌ Lỗi model {model_name}: {e}"
-            time.sleep(1)
 
-    return "❌ AI ERROR: API key/model không hoạt động"
+# ====== FALLBACK OFFLINE ======
+def fallback(prompt):
+    return f"""
+🔥 Gợi ý SEO cho: {prompt}
+
+- 10 tiêu đề viral
+- mô tả chuẩn SEO
+- hashtag trending
+
+👉 (Fallback mode - AI lỗi)
+"""
+
+
+# ====== MAIN ======
+def ask_ai(prompt):
+    # 1. Gemini
+    res = ask_gemini(prompt)
+    if res and "ERROR" not in str(res):
+        return res
+
+    # 2. Retry nhẹ
+    time.sleep(1)
+    res = ask_gemini(prompt)
+    if res and "ERROR" not in str(res):
+        return res
+
+    # 3. Fallback
+    return fallback(prompt)

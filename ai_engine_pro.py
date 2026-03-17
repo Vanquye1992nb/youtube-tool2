@@ -3,8 +3,7 @@ import time
 from cachetools import TTLCache
 
 # ===== CONFIG =====
-API_KEY = "AIzaSyAoCyxGW6zpwEmQHj4yAHn_6tLzqLbfsqE"
-
+API_KEY = "AIzaSyAiF8UqjOh7XlP3WqI1QfdmhJMtGHF7ZQM"
 genai.configure(api_key=API_KEY)
 
 # cache 100 request / 10 phút
